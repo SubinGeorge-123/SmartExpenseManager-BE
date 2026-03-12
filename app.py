@@ -5,11 +5,14 @@ import boto3
 import uuid
 from datetime import datetime
 from decimal import Decimal
+import requests
 
 # --- CONFIG ---
 AWS_REGION = "us-east-1"
 S3_BUCKET = "compressed-image-for-expense-manger"
 DYNAMO_TABLE = "ExpenseManager"
+TRIP_API_URL = "https://p0qyqh56t8.execute-api.us-east-1.amazonaws.com/dev/plan-trip"
+CHART_API_URL = "https://c2n5uhe770.execute-api.us-east-1.amazonaws.com/Prod/chart"
 
 # --- INIT ---
 app = Flask(__name__)
@@ -98,6 +101,47 @@ def delete_expense(expense_id):
         table.delete_item(Key={"expense_id": expense_id})
 
         return jsonify({"message": "Expense deleted successfully"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+# --- POST /plan-trip ---
+@app.route("/plan-trip", methods=["POST"])
+def plan_trip():
+    try:
+        data = request.json  # get JSON from React
+
+        # call friend's API
+        response = requests.post(TRIP_API_URL, json=data)
+
+        # return response from friend's API
+        return jsonify({
+            "status": "success",
+            "trip_plan": response.json()
+        }), response.status_code
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+# --- POST /generate-chart ---
+@app.route("/generate-chart", methods=["POST"])
+def generate_chart():
+    try:
+        data = request.json  # get JSON from React
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        # call external chart API
+        response = requests.post(
+            CHART_API_URL,
+            json=data,
+            headers=headers
+        )
+
+        return jsonify({
+            "status": "success",
+            "chart_response": response.json()
+        }), response.status_code
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
