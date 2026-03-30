@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full git history for blame information
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -34,7 +34,6 @@ jobs:
       - name: Run tests with coverage
         run: |
           pytest --cov=app --cov-report=xml
-        # This generates coverage.xml in runner workspace
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v2
@@ -47,9 +46,9 @@ jobs:
             -Dsonar.projectKey=subingeorge-123_smart-expense-manager
             -Dsonar.organization=subingeorge-123
             -Dsonar.branch.name=${{ github.ref_name }}
-            -Dsonar.exclusions=**/coverage.xml, **/tests/**, **/venv/**
+            -Dsonar.exclusions=**/coverage.xml,**/tests/**,**/venv/**
             -Dsonar.python.version=3.11
-
+            -Dsonar.sourceEncoding=UTF-8
 
   build_and_deploy:
     name: Build and Deploy to Elastic Beanstalk
