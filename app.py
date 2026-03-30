@@ -64,8 +64,7 @@ def submit_expense():
 @app.route("/expenses", methods=["GET"])
 def get_expenses():
     try:
-        response = table.scan()
-        items = response.get("Items", [])
+        items = []
         return jsonify(items)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
