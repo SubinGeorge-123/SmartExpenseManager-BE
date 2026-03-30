@@ -41,16 +41,6 @@ def submit_expense():
         expense_id = str(uuid.uuid4())
         image_url = ""
 
-        # --- UPLOAD IMAGE TO S3 ---
-        if image_file:
-            s3_key = f"expenses/{expense_id}_{image_file.filename}"
-            s3.upload_fileobj(
-            image_file,
-            S3_BUCKET,
-            s3_key,
-            ExtraArgs={"ContentType": image_file.content_type}
-            )
-            image_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{s3_key}"
 
         # --- SAVE TO DYNAMODB ---
         item = {
@@ -83,24 +73,9 @@ def get_expenses():
 @app.route("/expense/<expense_id>", methods=["DELETE"])
 def delete_expense(expense_id):
     try:
-        # get item first
-        response = table.get_item(Key={"expense_id": expense_id})
-        item = response.get("Item")
-
+        item = []
         if not item:
             return jsonify({"error": "Expense not found"}), 404
-
-        # delete image from S3 if exists    
-        image_url = item.get("image_url")
-
-        if image_url:
-            s3_key = image_url.split(".com/")[1]
-            s3.delete_object(
-            Bucket=S3_BUCKET, 
-            Key=s3_key,
-            ExpectedBucketOwner='YOUR_AWS_ACCOUNT_ID'  
-            )
-
         # delete from DynamoDB
         table.delete_item(Key={"expense_id": expense_id})
 
