@@ -1,7 +1,6 @@
 # app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import boto3
 import uuid
 from datetime import datetime
 from decimal import Decimal
@@ -18,9 +17,6 @@ CHART_API_URL = "https://c2n5uhe770.execute-api.us-east-1.amazonaws.com/Prod/cha
 app = Flask(__name__)
 CORS(app)  # allow requests from React
 
-s3 = boto3.client("s3", region_name=AWS_REGION)
-dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
-table = dynamodb.Table(DYNAMO_TABLE)
 
 
 # --- POST /submit-expense ---
@@ -52,7 +48,6 @@ def submit_expense():
             "created_at": datetime.utcnow().isoformat()
         }
 
-        table.put_item(Item=item)
 
         return jsonify({"message": "Expense saved successfully", "expense_id": expense_id, "data": item})
 
@@ -76,7 +71,6 @@ def delete_expense(expense_id):
         if not item:
             return jsonify({"error": "Expense not found"}), 404
         # delete from DynamoDB
-        table.delete_item(Key={"expense_id": expense_id})
 
         return jsonify({"message": "Expense deleted successfully"})
 
@@ -99,6 +93,7 @@ def plan_trip():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+# Example: If you have untested functions, add tests
 # --- POST /generate-chart ---
 @app.route("/generate-chart", methods=["POST"])
 def generate_chart():

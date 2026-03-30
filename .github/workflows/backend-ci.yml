@@ -11,13 +11,14 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-
   sonar_scan:
     name: SonarQube Code Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full git history for blame information
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -45,6 +46,10 @@ jobs:
             -Dsonar.python.coverage.reportPaths=coverage.xml
             -Dsonar.projectKey=subingeorge-123_smart-expense-manager
             -Dsonar.organization=subingeorge-123
+            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.exclusions=**/coverage.xml, **/tests/**, **/venv/**
+            -Dsonar.python.version=3.11
+
 
   build_and_deploy:
     name: Build and Deploy to Elastic Beanstalk
